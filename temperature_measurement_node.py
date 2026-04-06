@@ -32,26 +32,26 @@ def loop():
     sim.loop()
     time.sleep(0)
 
-    values = [
-        f"t = {sim.last_t:.2f}s\t",
-        f"Outside: {utils.c_to_f(sim.outside_temp):.2f}°f",
-    ]
+    # values = [
+    #     f"t = {sim.last_t:.2f}s\t",
+    #     f"Outside: {utils.c_to_f(sim.outside_temp):.2f}°f",
+    # ]
 
-    for zone in range(node_config.num_zones):
-        values.append(
-            f"{node_config.zone_names[zone]}: {sensing.get_current_temperature_f(zone):.2f}°f"
-        )
+    # for zone in range(node_config.num_zones):
+    #     values.append(
+    #         f"{node_config.zone_names[zone]}: {sensing.get_current_temperature_f(zone):.2f}°f"
+    #     )
 
-    values += [
-        f"Heating: {sim.heating}",
-        f"Cooling: {sim.cooling}",
-    ]
+    # values += [
+    #     f"Heating: {sim.heating}",
+    #     f"Cooling: {sim.cooling}",
+    # ]
 
-    for zone in range(node_config.num_zones):
-        # values.append(f"theta_{zone} = {sim.angles[zone]:.2f}")
-        values.append(f"x_{zone} = {sim.xs[zone]:.2f}")
+    # for zone in range(node_config.num_zones):
+    #     # values.append(f"theta_{zone} = {sim.angles[zone]:.2f}")
+    #     values.append(f"x_{zone} = {sim.xs[zone]:.2f}")
 
-    print("\t".join(values))
+    # print("\t".join(values))
 
     for zone in range(num_zones):
         current_temp = get_current_temperature_f(zone)
