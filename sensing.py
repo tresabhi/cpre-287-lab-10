@@ -40,6 +40,7 @@ def lm35_temperature_c():
 
     return T
 
+
 # Get a temperature reading from the FunHouse internal temperature sensor
 def funhouse_temperature_c():
     return lm35_temperature_c()
@@ -50,7 +51,7 @@ def funhouse_temperature_c():
 
 # Get a temperature reading using whatever sensor is configured. zone is the zone ID of
 # the zone we're getting the reading for (used when simulating)
-def get_current_temperature_f(zone=0):
+def get_current_temperature_f(zone):
     if node_type == NODE_TYPE_SIMULATED:
         instance = get_instance()
         return instance.get_temperature_f(zone)

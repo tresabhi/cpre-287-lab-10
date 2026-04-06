@@ -1,3 +1,6 @@
+import utils
+import node_config
+import sensing
 import adafruit_dotstar
 import board, analogio, digitalio
 from node_config import *
@@ -8,8 +11,8 @@ from simulation import *
 
 # Set up networking.
 networking.connect_to_network()
-# networking.mqtt_initialize()
-# networking.mqtt_connect()
+networking.mqtt_initialize()
+networking.mqtt_connect()
 
 # The previously reported temperature values.
 # prev_temps = [None] * num_zones
@@ -26,24 +29,33 @@ networking.connect_to_network()
 def loop():
     sim = get_instance()
 
-    while True:
-        sim.loop()
-        time.sleep(0)
+    sim.loop()
+    time.sleep(0)
 
-        temp = get_current_temperature_f()
-        print(f"T = {temp:.3g}°f")
+    values = [
+        f"t = {sim.last_t:.2f}s\t",
+        f"Outside: {utils.c_to_f(sim.outside_temp):.2f}°f",
+    ]
 
-        # values = [
-        #     f"t = {sim.last_t:.2f}s\t",
-        #     f"Outside: {c_to_f(sim.outside_temp):.2f}°f",
-        # ]
+    for zone in range(node_config.num_zones):
+        values.append(
+            f"{node_config.zone_names[zone]}: {sensing.get_current_temperature_f(zone):.2f}°f"
+        )
 
-        # for zone in range(num_zones):
-        #     values.append(f"{zone_names[zone]}: {get_current_temperature_f(zone):.2f}°f")
+    values += [
+        f"Heating: {sim.heating}",
+        f"Cooling: {sim.cooling}",
+    ]
 
-        # average()
+    for zone in range(node_config.num_zones):
+        # values.append(f"theta_{zone} = {sim.angles[zone]:.2f}")
+        values.append(f"x_{zone} = {sim.xs[zone]:.2f}")
 
-        # print("\t".join(values))
+    print("\t".join(values))
+
+    for zone in range(num_zones):
+        current_temp = get_current_temperature_f(zone)
+        networking.mqtt_publish_message(networking.TEMP_FEEDS[zone], current_temp)
 
 
 ldo2 = digitalio.DigitalInOut(board.LDO2)

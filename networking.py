@@ -9,6 +9,7 @@ try:
     import socketpool
 except ModuleNotFoundError as e:
     import socket
+
     USE_BUILTIN_NETWORKING = True
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import ssl
@@ -32,8 +33,8 @@ SECONDARY_HOST = secrets["secondary_node_ip"]
 SOCKET_MESSAGE_MAX_LENGTH = 100
 
 # Configure the MQTT connection info. Currently not needed for mosquitto.
-#aio_username = secrets["aio_username"]
-#aio_key = secrets["aio_key"]
+# aio_username = secrets["aio_username"]
+# aio_key = secrets["aio_key"]
 
 # These are the MQTT feeds used. Feeds that are lists are indexed by zone_id.
 TEMP_FEEDS = []
@@ -52,11 +53,12 @@ else:
     pool = socketpool.SocketPool(wifi.radio)
     my_socket = None
 
+
 # Connects to the configured network. Should be called before attempting any network operations.
 def connect_to_network():
     if USE_BUILTIN_NETWORKING:
         # Nothing to do in this case.
-        print('Using the built-in networking for this platform')
+        print("Using the built-in networking for this platform")
         return
     # Check if we are not already connected.
     if wifi.radio.ap_info is None:
@@ -73,10 +75,12 @@ def connect_to_network():
     else:
         print("Already connected to WiFi")
 
-#-----------Socket comm code-----------#
+
+# -----------Socket comm code-----------#
 
 # A buffer to hold data coming in over the socket connection.
 socket_buffer = bytearray([0] * SOCKET_MESSAGE_MAX_LENGTH)
+
 
 # Connect to the secondary node over the network socket.
 def socket_connect():
@@ -89,13 +93,15 @@ def socket_connect():
     global my_socket
     my_socket = pool.socket()
 
-    #TODO: socket connection code for real hardware
+    # TODO: socket connection code for real hardware
+
 
 # Internal variable for tracking if we're currently listening (secondary control node does this).
 _socket_listening = False
 
 # Handle to the function that will be called when a message is received over the socket.
 _socket_callback = None
+
 
 # Starts listening for incoming connections. callback_function is the function that should be
 # called when a message is received.
@@ -116,8 +122,9 @@ def socket_listen(callback_function):
     # Refresh the socket - seems to help sometimes
     global my_socket
     my_socket = pool.socket()
-    
+
     # TODO: actual socket listening...
+
 
 # Send a message over the socket. msg is the message to be sent and should be a string.
 def socket_send_message(msg):
@@ -128,10 +135,11 @@ def socket_send_message(msg):
         if _socket_callback is not None:
             _socket_callback(msg)
         else:
-            print('Warning: simulated socket connection not found')
+            print("Warning: simulated socket connection not found")
         return
 
     # TODO: actual socket send...
+
 
 # Disconnect the socket. Might not actually get called since our application lives "forever."
 def socket_disconnect():
@@ -139,20 +147,20 @@ def socket_disconnect():
     _socket_listening = False
     my_socket.close()
 
-#-----------End socket comm code-----------#
+
+# -----------End socket comm code-----------#
 
 
-
-#------------MQTT code-----------------#
+# ------------MQTT code-----------------#
 
 # Configure a MiniMQTT Client
 mqtt_client = MQTT.MQTT(
     broker=secrets["mqtt_broker"],
     port=secrets["port"],
-    #username=secrets["aio_username"],
-    #password=secrets["aio_key"],
+    # username=secrets["aio_username"],
+    # password=secrets["aio_key"],
     socket_pool=pool,
-    #ssl_context=ssl.create_default_context(),
+    # ssl_context=ssl.create_default_context(),
 )
 
 # Internal state variable
@@ -167,6 +175,7 @@ _subscribed_feeds = []
 # List of MQTT message received callback functions
 _message_received_callbacks = []
 
+
 # Callback function that is called when the MQTT client connects to the broker
 def mqtt_connected(client, userdata, flags, rc):
     print("Connected to MQTT broker!")
@@ -180,9 +189,11 @@ def mqtt_connected(client, userdata, flags, rc):
     # Clear out the queued feeds list
     _queued_feeds.clear()
 
+
 # Callback function that is called when the MQTT client disconnects from the broker
 def mqtt_disconnected(client, userdata, rc):
     print("Disconnected from MQTT broker!")
+
 
 # Callback function that is called when the MQTT client receives a message.
 # This function, in turn, calls all registered callbacks from different modules.
@@ -193,14 +204,17 @@ def mqtt_message_received(client, topic, message):
             cb(client, topic, message)
         except TypeError as e:
             # Assume this means it's a one-parameter callback, such as the socket comm callback
-            if 'cooling-and-heating' in topic:
+            if "cooling-and-heating" in topic:
                 import command
+
                 cmd = command.Command(type=command.TYPE_HEAT_COOL, values=[message])
                 cb(str(cmd))
+
 
 # Configure the callback functions for the client.
 mqtt_client.on_connect = mqtt_connected
 mqtt_client.on_disconnect = mqtt_disconnected
+
 
 # Initializes MQTT, including the feed lists.
 def mqtt_initialize():
@@ -218,22 +232,25 @@ def mqtt_initialize():
     DAMPER_FEEDS.extend([f"damper-zone-{i}" for i in range(1, num_zones + 1)])
 
     # Print the defined feeds for debugging purposes
-    print(f"Feeds available: {TEMP_FEEDS}, {SETPOINT_FEEDS}, {DAMPER_FEEDS}, {COOLING_HEATING_FEED}")
+    print(
+        f"Feeds available: {TEMP_FEEDS}, {SETPOINT_FEEDS}, {DAMPER_FEEDS}, {COOLING_HEATING_FEED}"
+    )
+
 
 # Connects to the MQTT broker (if needed) and subscribes to the list of feeds provided.
 # message_callback is the function that is called when a new message is received from a subbed feed.
-def mqtt_connect(feeds = [], message_callback = None):
+def mqtt_connect(feeds=[], message_callback=None):
     # Save the callback function. It will be called in the intermediate callback.
     if message_callback is not None:
         _message_received_callbacks.append(message_callback)
-    
+
     # Point the MQTT client at the intermediate callback.
     mqtt_client.on_message = mqtt_message_received
 
     if mqtt_client.is_connected():
         # Check to see if the client is connected. For some reason this throws an error if it's not, so we're
         # not even bothering to check the return value.
-        #print(mqtt_client.is_connected())
+        # print(mqtt_client.is_connected())
 
         print("MQTT is already connected.")
 
@@ -255,40 +272,37 @@ def mqtt_connect(feeds = [], message_callback = None):
         mqtt_client.connect()
         time.sleep(1)
 
+
 # Publish a message to a feed. feed is the feed to publish to, and value is the body of the message.
 def mqtt_publish_message(feed, value):
     try:
         mqtt_client.publish(feed, value)
     except OSError as e:
-        print('MQTT disconnected, reconnecting...')
+        print("MQTT disconnected, reconnecting...")
         mqtt_connect()
 
-#------------End MQTT code-----------------#
+
+# ------------End MQTT code-----------------#
 
 # Timing variables
 LOOP_INTERVAL_NS = 100000000
 _prev_time = time.monotonic_ns()
 
+
 # Perform regular network tasks. This includes checking for new messages on subbed MQTT feeds, and
 # checking for new connections on the socket (if we are listening).
 def loop():
     # Only run this function's code if LOOP_INTERVAL_NS have elapsed since the last time it was run.
-    global _prev_time
-    curr_time = time.monotonic_ns()
-    if curr_time - _prev_time < LOOP_INTERVAL_NS:
-        return
-
-    _prev_time = curr_time
 
     # Check for new MQTT messages.
     try:
         if mqtt_client.is_connected():
             mqtt_client.loop()
     except MQTT.MMQTTException as e:
-        print('Warning: MQTT loop failed')
+        print("Warning: MQTT loop failed")
         pass
     except OSError as e:
-        print('MQTT disconnected, reconnecting...')
+        print("MQTT disconnected, reconnecting...")
         mqtt_connect()
 
     # TODO: Check for new socket connections.

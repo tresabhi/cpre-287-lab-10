@@ -10,7 +10,7 @@ from math import sin, pi
 SIM_SPEED = 1
 
 TEMP_RANGE = 10
-TEMP_AVG = 30
+TEMP_AVG = 10
 
 INTEGRAL_SAMPLES = 150
 
