@@ -5,21 +5,7 @@ import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import networking
 from node_config import *
 
-# networking.connect_to_network()
-# networking.mqtt_initialize()
-# networking.mqtt_connect()
-
 # TODO: probably want some global variables here...
-
-# pool = socketpool.SocketPool(wifi.radio)
-# mqtt_client = MQTT.MQTT(
-#     broker=secrets["mqtt_broker"],
-#     port=secrets["port"],
-#     # username=secrets["aio_username"],
-#     # password=secrets["aio_key"],
-#     socket_pool=pool,
-#     # ssl_context=ssl.create_default_context(),
-# )
 
 
 # Called when an MQTT message is received.

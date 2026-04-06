@@ -2,6 +2,7 @@ import time
 from node_config import *
 import microcontroller
 import gc
+import primary_control_node
 
 # Here we check if we need to use the "built-in" networking of the system instead of CircuitPython's
 # wifi and socketpool modules. This is the case if we are running a simulation on "desktop" Python.
@@ -119,7 +120,11 @@ mqtt_client = MQTT.MQTT(
 _mqtt_is_initialized = False
 
 # List of feeds that we're wanting to subscribe to but haven't yet
-_queued_feeds = []
+_queued_feeds = [
+    "temperature-zone-1",
+    "temperature-zone-2",
+    "temperature-zone-3",
+]
 
 # List of feeds that we have subscribed to
 _subscribed_feeds = []
@@ -150,6 +155,8 @@ def mqtt_disconnected(client, userdata, rc):
 # Callback function that is called when the MQTT client receives a message.
 # This function, in turn, calls all registered callbacks from different modules.
 def mqtt_message_received(client, topic, message):
+    primary_control_node.message_received(client, topic, message)
+
     for cb in _message_received_callbacks:
         print(f"MQTT callback for {cb}")
         try:
