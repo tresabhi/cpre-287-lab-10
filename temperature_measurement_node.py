@@ -26,10 +26,10 @@ networking.mqtt_connect()
 
 
 # Runs periodic node tasks.
-def loop():
+def loop(dt):
     sim = get_instance()
 
-    sim.loop()
+    sim.loop(dt)
     time.sleep(0)
 
     # values = [

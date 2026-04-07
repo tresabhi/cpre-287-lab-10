@@ -44,6 +44,8 @@ class Simulation:
     zone_temps = {}
     outside_temp = 0
 
+    t = 0
+
     xs = [0] * num_zones
     angles = [0] * num_zones
 
@@ -186,13 +188,15 @@ class Simulation:
         #     self.cooling = average_temp > TARGET_TEMP
 
     # Runs periodic simulation actions.
-    def loop(self):
+    def loop(self, dt):
         # Calculate the amount of time elapsed since this last time this function was run. See CircuitPython's time module documentation
         # at http://docs.circuitpython.org/en/latest/shared-bindings/time/index.html. We recommend time.monotonic_ns(). Also note that
         # temperature_measurement_node.py has an elapsed time calculation, and you may be able to use a similar approach here.
 
         # pass in the actual elapsed time.
-        t = SIM_SPEED * (time.monotonic() - self.initial_time)
+        # t = SIM_SPEED * (time.monotonic() - self.initial_time)
+        t = self.t + dt
+        self.t = t
 
         self._update_dampers(t)
         self._update_temps(t)

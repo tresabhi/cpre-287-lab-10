@@ -5,8 +5,6 @@ import adafruit_minimqtt.adafruit_minimqtt as MQTT
 import networking
 from node_config import *
 
-# TODO: probably want some global variables here...
-
 
 # Called when an MQTT message is received.
 # topic is the feed name the message was published on.
@@ -18,6 +16,14 @@ def message_received(client, topic, message):
 
 
 # TODO: set up networking, subscribe to feeds, and send initial feed messages
+
+
+# TODO: probably want some global variables here...
+networking.connect_to_network()
+networking.mqtt_initialize()
+networking.mqtt_connect(
+    [f"temperature-zone-{i + 1}" for i in range(num_zones)], message_received
+)
 
 
 # Run the regular primary control node tasks

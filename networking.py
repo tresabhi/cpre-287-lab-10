@@ -155,7 +155,7 @@ def mqtt_disconnected(client, userdata, rc):
 # Callback function that is called when the MQTT client receives a message.
 # This function, in turn, calls all registered callbacks from different modules.
 def mqtt_message_received(client, topic, message):
-    primary_control_node.message_received(client, topic, message)
+    # primary_control_node.message_received(client, topic, message)
 
     for cb in _message_received_callbacks:
         print(f"MQTT callback for {cb}")
